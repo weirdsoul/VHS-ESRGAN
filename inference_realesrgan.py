@@ -86,7 +86,7 @@ def main():
     elif args.model_name == 'vhs':  # VHS conversion model
         model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
         netscale = 4
-        file_url = ['file:/home/weirdsoul/coding/Real-ESRGAN/4xVHSUpscaling_350000.pth']
+        file_url = ['https://github.com/weirdsoul/VHS-ESRGAN/releases/download/initial_vhs_model/4xVHSUpscaling_g_349000.pth']
 
     # determine model paths
     if args.model_path is not None:

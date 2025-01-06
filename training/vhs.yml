@@ -54,10 +54,9 @@ network_d:
   skip_connection: True
 
 path:
-  pretrain_network_g: /home/weirdsoul/coding/Real-ESRGAN/4xVHSUpscaling_g_349000.pth
+  pretrain_network_g: /home/weirdsoul/coding/Real-ESRGAN/weights/4xVHSUpscaling_g_349000.pth
   param_key_g: params_ema
   strict_load_g: true
-  resume_state: /home/weirdsoul/coding/Real-ESRGAN/4xVHSUpscaling_348000.state
 
 train:
   ema_decay: 0.999
