@@ -83,6 +83,10 @@ def main():
             'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-wdn-x4v3.pth',
             'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth'
         ]
+    elif args.model_name == 'vhs':  # VHS conversion model
+        model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+        netscale = 4
+        file_url = ['file:/home/weirdsoul/coding/Real-ESRGAN/4xVHSUpscaling_350000.pth']
 
     # determine model paths
     if args.model_path is not None:
@@ -125,30 +129,24 @@ def main():
             bg_upsampler=upsampler)
     os.makedirs(args.output, exist_ok=True)
 
-    if os.path.isfile(args.input):
-        paths = [args.input]
-    else:
-        paths = sorted(glob.glob(os.path.join(args.input, '*')))
 
-    for idx, path in enumerate(paths):
-        imgname, extension = os.path.splitext(os.path.basename(path))
-        print('Testing', idx, imgname)
-
-        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-        if len(img.shape) == 3 and img.shape[2] == 4:
-            img_mode = 'RGBA'
+    while True:
+        if os.path.isfile(args.input):
+            paths = [args.input]
         else:
-            img_mode = None
+            paths = sorted(glob.glob(os.path.join(args.input, '*')))
+        found_new_files = False
 
-        try:
-            if args.face_enhance:
-                _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
+        for idx, path in enumerate(paths):
+            imgname, extension = os.path.splitext(os.path.basename(path))
+            print('Testing', idx, imgname)
+
+            img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            if len(img.shape) == 3 and img.shape[2] == 4:
+                img_mode = 'RGBA'
             else:
-                output, _ = upsampler.enhance(img, outscale=args.outscale)
-        except RuntimeError as error:
-            print('Error', error)
-            print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
-        else:
+                img_mode = None
+
             if args.ext == 'auto':
                 extension = extension[1:]
             else:
@@ -159,8 +157,25 @@ def main():
                 save_path = os.path.join(args.output, f'{imgname}.{extension}')
             else:
                 save_path = os.path.join(args.output, f'{imgname}_{args.suffix}.{extension}')
-            cv2.imwrite(save_path, output)
 
+            # If output file exists already, assume we're recovering from a previous run and skip the file.
+            if os.path.exists(save_path):
+                continue
+
+            try:
+                if args.face_enhance:
+                    _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
+                else:
+                    output, _ = upsampler.enhance(img, outscale=args.outscale)
+            except RuntimeError as error:
+                print('Error', error)
+                print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
+            else:
+                cv2.imwrite(save_path, output)
+                found_new_files = True
+        
+        if not found_new_files:            
+            break
 
 if __name__ == '__main__':
     main()

@@ -51,7 +51,7 @@ class RealESRGANDataset(data.Dataset):
             # disk backend with meta_info
             # Each line in the meta_info describes the relative path to an image
             with open(self.opt['meta_info']) as fin:
-                paths = [line.strip().split(' ')[0] for line in fin]
+                paths = [line.strip() for line in fin]
                 self.paths = [os.path.join(self.gt_folder, v) for v in paths]
 
         # blur settings for the first degradation
