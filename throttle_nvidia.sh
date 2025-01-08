@@ -1,3 +1,3 @@
 #!/bin/bash
-sudo nvidia-smi -pl 170
+sudo nvidia-smi -pl $1
 nvidia-smi -q -d POWER
