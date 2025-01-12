@@ -1,6 +1,6 @@
 # Real-ESRGAN training config file I (Philip Hofmann, or Helaman in discord) used for an anime compact model, but adapted/simplified (gt_size, batch size, loss functions, no pretrain and no validation) for a tutorial
 
-name: 4xVHSDownscaling # change this name to your model name
+name: to_vhs # change this name to your model name
 model_type: RealESRGANModel
 scale: 1
 num_gpu: auto
@@ -18,7 +18,7 @@ datasets:
     type: RealESRGANPairedDataset
     dataroot_gt: /media/bulk_data/superres/training/paired_vcr_ds # change this path to the folder where you have your ground truth
     dataroot_lq: /media/bulk_data/superres/training/paired_vcr_ds # change this path to the folder where you have your ground truth
-    meta_info: /media/bulk_data/superres/training/paired_vcr_ds/paired_vcr_ds.txt # change this path to the meta info file
+    meta_info: /media/bulk_data/superres/training/paired_vcr_ds/paired_vcr.txt # change this path to the meta info file
     io_backend:
       type: disk
     
