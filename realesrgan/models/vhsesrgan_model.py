@@ -99,12 +99,26 @@ class VHSESRGANModel(SRGANModel):
             gt_size = self.opt['gt_size']
             self.gt, self.lq = paired_random_crop(self.gt, self.lq, gt_size, self.opt['scale'])
             
-            # Run the VHS degradation network.
-            if self.deg_model:                
-                self.lq = self.deg_model(self.lq)
-                # Perhaps run the VHS degradation twice.
-                if np.random.uniform() < self.opt['second_degradation_prob']:
-                    self.lq = self.deg_model(self.lq)                
+            # Run the VHS degradation network once, twice or three times.
+            if self.deg_model:
+                num_deg = random.choice([1,2,3])
+                for _ in range(0,num_deg):
+                    self.lq = self.deg_model(self.lq)
+
+            # Add some additional noise so irrelevant invariants learned by the degradation model don't
+            # transfer to the upscaling model.
+            gray_noise_prob = self.opt['gray_noise_prob']
+            if np.random.uniform() < self.opt['gaussian_noise_prob']:
+                self.lq = random_add_gaussian_noise_pt(
+                    self.lq, sigma_range=self.opt['noise_range'], clip=True,
+                    rounds=False, gray_prob=gray_noise_prob)
+            else:
+                self.lq = random_add_poisson_noise_pt(
+                    self.lq,
+                    scale_range=self.opt['poisson_scale_range'],
+                    gray_prob=gray_noise_prob,
+                    clip=True,
+                    rounds=False)
 
             # clamp and round
             self.lq = torch.clamp((self.lq * 255.0).round(), 0, 255) / 255.

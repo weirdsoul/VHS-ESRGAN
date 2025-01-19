@@ -13,12 +13,16 @@ manual_seed: 0
 
 # Degradation model
 degradation_model_g: experiments/pretrained_models/to_vhs.pth
-second_degradation_prob: 0.5
 
 # USM the ground-truth
 l1_gt_usm: True
 percep_gt_usm: True
 gan_gt_usm: False
+
+gaussian_noise_prob: 0.5
+noise_range: [1, 30]
+poisson_scale_range: [0.05, 3]
+gray_noise_prob: 0.4
 
 gt_size: 256
 queue_size: 180
@@ -116,7 +120,7 @@ train:
     milestones: [400000]
     gamma: 0.5
 
-  total_iter: 400000
+  total_iter: 800000
   warmup_iter: -1  # no warm up
 
   # losses
