@@ -9,6 +9,7 @@ from basicsr.utils.registry import MODEL_REGISTRY
 from collections import OrderedDict
 from realesrgan.archs.srvgg_arch import SRVGGNetCompact
 from torch.nn import functional as F
+from torchvision.transforms import v2
 
 @MODEL_REGISTRY.register()
 class VHSESRGANModel(SRGANModel):
@@ -40,6 +41,10 @@ class VHSESRGANModel(SRGANModel):
             self.deg_model.load_state_dict(loadnet[keyname], strict=True)
             self.deg_model.eval()
             self.deg_model = self.deg_model.to(self.device)
+
+            # TODO: Make this configurable.
+            self.color_jitter = v2.ColorJitter(brightness=.5, contrast=.5, saturation=.5, hue=.5)
+            self.random_rotation = v2.RandomRotation(degrees=(0,180))
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self):
@@ -87,6 +92,15 @@ class VHSESRGANModel(SRGANModel):
             self.gt = data['gt'].to(self.device)
 
             ori_h, ori_w = self.gt.size()[2:4]
+
+            # Before we even generate the downscaled image, let's do some nasty things to the original
+            # to diversify the dataset.
+            color_jitter_prob = self.opt['color_jitter_prob']
+            if np.random.uniform() < color_jitter_prob:
+                self.gt=self.color_jitter(self.gt)
+            rotation_prob = self.opt['rotation_prob']
+            if np.random.uniform() < rotation_prob:
+                self.gt=self.random_rotation(self.gt)            
 
             # With VHS degradation, we always want the degradation to be applied to the final size LQ
             # image (downscaled to opt['scale']), so this is what we'll do first.
