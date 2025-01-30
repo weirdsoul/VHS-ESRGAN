@@ -45,6 +45,10 @@ class VHSESRGANModel(SRGANModel):
             # TODO: Make this configurable.
             self.color_jitter = v2.ColorJitter(brightness=.5, contrast=.5, saturation=.5, hue=.5)
             self.random_rotation = v2.RandomRotation(degrees=(0,180))
+            self.random_transforms = v2.Compose([
+                v2.RandomHorizontalFlip(p=self.opt['horiz_flip_prob']),
+                v2.RandomPerspective(distortion_scale=0.6, p=self.opt['perspective_prob'])
+            ])
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self):
@@ -100,7 +104,11 @@ class VHSESRGANModel(SRGANModel):
                 self.gt=self.color_jitter(self.gt)
             rotation_prob = self.opt['rotation_prob']
             if np.random.uniform() < rotation_prob:
-                self.gt=self.random_rotation(self.gt)            
+                self.gt=self.random_rotation(self.gt)
+
+            # Apply the rest of the preconfigured transforms (their probability is preconfigured
+            # through the configuration).
+            self.gt=self.random_transforms(self.gt)                
 
             # With VHS degradation, we always want the degradation to be applied to the final size LQ
             # image (downscaled to opt['scale']), so this is what we'll do first.

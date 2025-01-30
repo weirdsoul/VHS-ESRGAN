@@ -92,9 +92,10 @@ class RealESRGANDataset(data.Dataset):
         while retry > 0:
             try:
                 img_bytes = self.file_client.get(gt_path, 'gt')
-            except (IOError, OSError) as e:
+                img_gt = imfrombytes(img_bytes, float32=True)
+            except Exception as e:
                 logger = get_root_logger()
-                logger.warn(f'File client error: {e}, remaining retry times: {retry - 1}')
+                logger.warn(f'File client error reading/parsing {gt_path}: {e}, remaining retry times: {retry - 1}')
                 # change another file to read
                 index = random.randint(0, self.__len__())
                 gt_path = self.paths[index]
@@ -103,7 +104,6 @@ class RealESRGANDataset(data.Dataset):
                 break
             finally:
                 retry -= 1
-        img_gt = imfrombytes(img_bytes, float32=True)
 
         # -------------------- Do augmentation for training: flip, rotation -------------------- #
         img_gt = augment(img_gt, self.opt['use_hflip'], self.opt['use_rot'])
